@@ -1,5 +1,7 @@
 import { Component, ElementRef, AfterViewInit, ViewChild } from '@angular/core';
 import maplibregl, { Map, StyleSpecification } from 'maplibre-gl';
+import { CitiesService } from '../../../core/cities.service';
+import { MapService } from '../../../core/map.service';
 
 @Component({
   selector: 'app-map',
@@ -10,6 +12,11 @@ import maplibregl, { Map, StyleSpecification } from 'maplibre-gl';
 export class MapComponent implements AfterViewInit {
   @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef<HTMLDivElement>;
   map!: Map;
+
+  constructor(
+    private citiesService: CitiesService,
+    private mapService: MapService
+  ) {}
 
   ngAfterViewInit() {
     this.map = new maplibregl.Map({
@@ -22,7 +29,19 @@ export class MapComponent implements AfterViewInit {
       attributionControl: false
     });
 
-    this.map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+    this.mapService.setMap(this.map);
+
+    const updateCitiesOverlay = () => {
+      const b = this.map.getBounds();
+      this.citiesService.setBBox([b.getWest(), b.getSouth(), b.getEast(), b.getNorth()]);
+      this.citiesService.setZoom(this.map.getZoom());
+    };
+
+    // this.map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+    this.map.on('move', updateCitiesOverlay);
+    this.map.on('zoom', updateCitiesOverlay);
+    this.map.on('resize', updateCitiesOverlay);
+
   }
 
   getMapStyle(): StyleSpecification {

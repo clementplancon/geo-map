@@ -1,1 +1,8 @@
-<p>city-labels works!</p>
+<ng-container *ngIf="cities$ | async as cities">
+    <div *ngFor="let city of cities"
+      class="city-label"
+      [style.left.%]="getX(city)"
+      [style.top.%]="getY(city)">
+      <span>{{city.city}}</span>
+    </div>
+  </ng-container>
